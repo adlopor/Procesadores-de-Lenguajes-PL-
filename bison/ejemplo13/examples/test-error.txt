@@ -1,0 +1,15 @@
+a = -9;
+
+
+print log10(a); 
+
+
+print sqrt(-49.0); 		        
+
+print a;
+
+
+print Logaritmo10(a); 
+
+print log10(1); 
+

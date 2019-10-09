@@ -1,0 +1,7 @@
+print PI;
+
+read (N);
+print N * PI;
+
+print  E;
+

@@ -1,0 +1,569 @@
+GUION DE LAS CLASES DE PRACTICAS DE BISON/YACC CON FLEX/LEX
+
+1.- Reconocimiento léxico y sintáctico de expresiones aritméticas
+
+2.- Se analiza un fichero de entrada pasado como argumento desde la línea de comandos.
+    Se muestra el nombre del programa en los mensajes de error.
+
+3.- Se permiten operadores unarios y se utilizan identificadores para los componentes léxicos o tokens. Se muestran errore léxicos.
+
+4.- Se analizan y evalúan expresiones aritméticas compuestas por números
+
+5.- Nuevos operadores de módulo y potencia y uso de ";" para separar expresiones en vez del salto de línea 
+
+6.- Recuperación de errores de ejecución
+
+7.- Uso de variables numéricas y la sentencia de asignación. Tabla de símbolos
+
+8.- Gramática con un conflicto de desplazamiento - reducción
+
+9.- Solución del conflicto de desplazamiento - reducción. Uso de la sentencia de escritura "print".
+    Incorporación de la sentencia de lectura "read".
+    Uso de palabras reservadas reconocidas por el analizador léxico.
+
+10.- Constantes numéricas predefinidas e instaladas en la tabla de símbolos
+
+11.- Constantes numéricas predefinidas que no se pueden modificar. Reglas gramaticales de control de errores
+
+12.- Palabras claves pre-instaladas en la tabla de símbolos.
+
+13.- Funciones matemáticas pre-definidas con un argumento
+
+14.- Funciones matemáticas pre-definidas con cero o dos argumentos
+
+15.- Operadores relacionales y lógicos.
+
+16.- Generación de código intermedio usando AST
+
+17.- Sentencias if y while
+	
+
+************************************************************************************
+
+Ejemplo 1.- Reconocimiento léxico y sintáctico de expresiones aritméticas
+
+ + DESCRIPCIÓN
+   -Reconoce expresiones aritméticas compuestas solamente por números.
+    > Suma, resta, multiplicación y división.
+    > Permite expresiones entre paréntesis.
+    > Las expresiones deben terminar con un salto de línea.
+
+   - Muestra un mensaje cuando se detecta un error
+
+ + OBSERVACIÓN
+     - No permite operadores unarios:  signo "+" unario,  signo "-" unario
+
+ + FUNCIONAMIENTO DEL INTÉRPRETE
+   - Interactivo:
+            $interpreter
+             > 2 + 3
+             ...
+		     El programa finaliza pulsando Control + D
+			 o tecleando  # al principio de línea 
+
+    - Redirigiendo un fichero de entrada: 
+           $interpreter < test.txt
+			..
+		     El programa finaliza cuando alcanza el final del fichero
+			 o cuando lee el carácter # al principio de línea 
+
+   + Comando para mostrar más información de un error
+	- interpreter.y:     %error-verbose
+
+ + FICHEROS
+	- interpreter.y: fichero de yacc con la gramática del analizador sintáctico
+	- interpreter.l: fichero de lex con las expresiones regulares del analizador léxico  
+
+	- error.hpp: prototipos de las funciones de recuperación de error
+  	- error.cpp: código de las funciones de recuperación de error
+
+	- macros.hpp: macros de pantalla
+
+	- Doxyfile: fichero de configuración de doxygen  
+
+	- makefile: fichero para la compilación del intérprete       
+
+	- test.txt: fichero de ejemplo sin errores
+	- test-error.txt: fichero de ejemplo con errores
+
+            
+************************************************************************************
+Ejemplo 2. Se analiza un fichero de entrada pasado como argumento desde la línea de comandos
+           Se muestra el nombre del programa en los mensajes de error
+
+ + NOVEDADES
+   - Se analiza un fichero de entrada pasado como argumento desde la línea de comandos
+	 $interpreter test.txt
+
+	Fichero interpreter.y 
+			int main(int argc, char *argv[])
+			...
+			if (argc == 2) 
+			     yyin = fopen(argv[1],"r");
+
+
+   - Se muestra el nombre del programa en los mensajes de error
+      $ ./interpreter.exe 
+		safd
+		Program: ./interpreter.exe
+		Error in línea 1: syntax error, unexpected $undefined, expecting $end or NUMBER or '\n' or '('
+
+
+ + FICHEROS MODIFICADOS
+	- interpreter.y
+  	- error.cpp
+
+
+************************************************************************************
+3.- Se permiten operadores unarios y se utilizan identificadores para los componentes léxicos o tokens. Se muestran erroren léxicos.
+
+ + NOVEDADES
+	- Se permiten operadores unarios:  
+		  signo "+" unario
+					+ 2
+		  signo "-" unario
+					-2
+  
+	  	 Observación: permite expresiones como 
+         	++ 2
+           	+ - + 3
+		   (Curiosidad: el lenguaje C también lo permite.)
+
+ + FICHEROS MODIFICADOS
+    + interpreter.l
+	+ interpreter.y
+	+ makefile
+      
+ + EJERCICIOConstantes numéricas predefinidas que no se pueden modificar. Reglas gramaticales de control de errores
+   Cambiar operadores 
+    + --> &
+    * --> # 
+
+
+************************************************************************************
+Ejemplo 4. Se analizan y evalúan expresiones aritméticas compuestas por números
+
+ + NOVEDADES
+	$./interpreter.exe 
+	2+3
+	Result: 5
+
+	5*4
+	Result: 20
+
+
+ + FICHEROS MODIFICADOS
+	- Fichero interpeter.l
+ 	- Fichero interpeter.y
+
+ + SIGNIFICADOS
+  	 yylval: atributo de un componente léxico
+	 YYSTYPE: tipo de dato del atributo	(véase el fichero y.tab.h)
+
+	 $$: atributo del símbolo no terminal de la parte izquierda de la regla
+	 $1: atributo del primer símbolo de la parte derecha de la regla
+	 $2: atributo del segundo símbolo de la parte derecha de la regla
+	 $n: atributo del símbolo n-ésimo de la parte derecha de la regla
+
+
+
+************************************************************************************
+Ejemplo 5. Nuevos operadores de módulo y potencia y uso de ";" para separar expresiones en vez del salto de línea
+  
+  + NOVEDADES
+      - Uso del operador del resto de la división entera: %
+         fichero de flex: MODULO
+         fichero de bison: definición de token MODULO, conversión de tipo con (int) 
+
+	  - Uso del operador de potencia de un número: ^ (asociativo por la derecha)
+		fichero de flex: POWER
+		fichero de bison: definción del token POWER, math.h, regla de POWER, pow
+  
+    - Fichero interpreter.l: 
+			Al reconocer ";", se devuelve SEMICOLON
+			Al reconocer "\n", no se devuelve SEMICOLON, pero se incrementa el contador de líneas
+
+
+ + OBSERVACIÓN
+	No se controla la división por cero en % y /
+    Se controlará en el ejemplo 6
+
+
++ FICHEROS MODIFICADOS
+	- interpreter.y
+	- interpreter.l
+
+	- test.txt
+	- test-error.txt
+
+************************************************************************************
+ Ejemplo 6. Recuperación de errores de ejecución
+
+  + NOVEDADES
+	Se ha incluido un mecanismo para recuperarse de un error de ejecución: 
+    - si hay un error de ejecución, el intérprete lo comunica pero no termina la ejecución.
+    - se controla la división por cero de los operadores / y % 
+
+
+  + FICHEROS MODIFICADOS
+    - interpreter.y
+	- error.hpp
+	- error.cpp
+		
+
+************************************************************************************
+ Ejemplo 7. Uso de variables numéricas y la sentencia de asignación
+
+ + NOVEDADES
+  - Permite asignar valores a variables de tipo real 
+    Por ejemplo:
+    a = 2;
+    dato = 3 * a;
+ 
+  - Permite la asignación múltiple en una misma sentencia
+    a = b = c = 2;
+
+   - Una variable es un identificador que empieza por una letra y que pueda ir seguida de letras o dígitos.
+
+	- Los identificadores se almacenan en una tabla de símbolos (map de STL) de variables numéricas o indefinidas
+
+    - Se controlan las variables no definidas
+
+  + FICHEROS MODIFICADOS
+	- interpreter.y
+	- interpreter.l
+
+	- makefile
+
+	- test.txt
+	- test-error.txt
+
+	- Doxyfile
+
+  + FICHEROS NUEVOS
+
+	- tableInterface.hpp: definición de la clase abstracta TableInterface
+	- table.hpp: definición de la clase Table
+	- table.cpp: código del resto de funciones de la clase Table
+
+	- symbolInterface.hpp: definición de la clase abstracta SymbolInterface
+ 	- symbol.hpp: definición de la clase Symbol
+ 	- symbol.cpp: código del resto de funciones de la clase Symbol    
+
+	- variable.hpp: definición de la clase Variable, que hereda de Symbol
+	- variable.cpp: código del resto de funciones de la clase Variable
+
+	- numericVariable.hpp: definición de la clase NumericVariable, que hereda de Variable
+	- numericVariable.cpp: código del resto de funciones de la clase NumericVariable
+
+ + EJERCICIO:
+	modifica el operador de asignación para que sea el de Pascal
+	   := 
+
+	Por ejemplo
+    	a := 2;
+	    dato := 3 * a;
+
+
+************************************************************************************
+ Ejemplo 8.  GRAMÁTICA CON CONFLICTO DE DESPLAZAMIENTO - REDUCCIÓN
+
+ + NOVEDADES
+	- Se introduce una regla para asignación
+		   stmtlist -> stmtlist asgn SEMICOLON
+
+	 que genera un conflicto. El conflicto será corregido en el ejemplo 9
+ 
+		  La asignación se puede generar de dos maneras: 
+			   program ==> stmtlist 
+                       ==> stmtlist asgn SEMICOLON
+                       ==> asgn SEMICOLON  
+					   ==> VARIABLE ASSIGNMENT exp SEMICOLON 
+
+			   program ==>  stmtlist 
+                       ==> stmtlist exp SEMICOLON
+                       ==> exp SEMICOLON
+                       ==> asgn SEMICOLON    
+					   ==> VARIABLE ASSIGNMENT exp SEMICOLON 
+
+ + REVISIÓN DEL CONFLICTO
+	 - Se genera el fichero interpreter.output para obtener información del conflicto
+        bison -v interpreter.y ---> se genera el fichero interpreter.output
+
+		gedit interpreter.output
+
+		Estado 11
+
+			4 stmtlist: stmtlist asgn . SEMICOLON
+		   18 exp: asgn .
+
+			SEMICOLON  desplazar e ir al estado 19
+
+			SEMICOLON  [reduce usando la regla 18 (exp)]
+			$default       reduce usando la regla 18 (exp)
+
+
++ FICHERO NUEVO
+	- interpreter.output: fichero que describe la tabla LALR y el conflicto
+
++ FICHEROS MODIFICADOS
+	- interpreter.y
+	- makefile
+
+
+
+************************************************************************************
+ Ejemplo 9.  USO DE print PARA EVITAR EL CONFLICTO DE DESPLAZAMIENTO - REDUCCIÓN y SENTENCIA read
+
+             Uso de palaras reservadas: print y read
+			
+
++ Las palabras reservadas son reconocidas mediante reglas específicas.
+   + Fichero de flex
+      Definición regular de print
+      print			{return PRINT;}
+
+
+      Definición regular de read
+      read			{return READ;}
+
+ + Fichero de bison
+    - Nuevos tokens: PRINT, READ
+	- Nuevos símbolos no terminales: print, read
+    - Nuevas reglas
+
+       stmtlist -> stmtlist stmt 
+		...
+
+	stmt: SEMICOLON  /* Empty statement: ";" */
+
+		| asgn SEMICOLON
+
+		| print SEMICOLON
+
+		| read SEMICOLON
+;
+
+
++ FICHEROS MODIFICADOS
+	- interpreter.y
+	- interpreter.l
+
+
+
+ + EJERCICIO
+  Definición regular para no distingir mayúsculas de minúsculas en print
+     (?i:print)			{return PRINT;}
+
+   No distinguir mayúsculas de minúsculas en los identificadores
+  	   /* Convert to toupper */
+					    for(int i = 0; yytext[i] != '\0'; i++)
+                        {
+							yytext[i] = toupper(yytext[i]);
+						}
+
+
+
+************************************************************************************
+ Ejemplo 10. CONSTANTES PREDEFINIDAS 
+
+  + NOVEDADES:
+   Hay constantes predefinidas
+   	                    "PI",    3.14159265358979323846
+	                    "E",     2.71828182845904523536
+	                    "GAMMA", 0.57721566490153286060
+	                    "DEG",  57.29577951308232087680
+	                    "PHI",   1.61803398874989484820
+
+  + OBSERVACIÓN
+   Permite cambiar el valor de una constante predefinida
+   PI = 3.14
+   PI = 0.0
+   
+	El ejemplo 11 evitará modificar las constantes predefinidas
+
+
++ FICHEROS NUEVOS
+	- init.hpp: prototipo de la función init
+	- init.cpp: código de la función init que inicializa la tabla de símbolos con las constantes predefinidas
+
+
++ FICHEROS MODIFICADOS
+	- interpreter.y 
+
+	- makefile
+
+
+************************************************************************************
+ Ejemplo 11.- Constantes numéricas predefinidas que no se pueden modificar. 
+			  Reglas gramaticales de control de errores
+
+
++ FICHEROS MODIFICADOS
+	- interpreter.y
+	- interpreter.l
+
+	- init.cpp
+	- init.hpp
+
+	- makefile
+	
++ FICHEROS NUEVOS
+
+	- constant.hpp: definición de la clase Constant, que hereda de Symbol
+	- constant.cpp: código del resto de funciones de la clase Constant
+
+	- numericConstant.hpp: definición de la clase numericConstant, que hereda de Constant
+	- numericConstant.cpp: código del resto de funciones de la clase Constant
+
+
+***********************************************************************************
+ Ejemplo 12.-  PALABRAS CLAVES PREINSTALADAS EN LA TABLA DE SÍMBOLOS
+
++ FICHEROS NUEVOS
+	- keyword.hpp: definición de la clase Keyword, que hereda de Symbol
+	- keyword.cpp: código del resto de funciones de la clase Keyword
+
+
++ FICHEROS MODIFICADOS
+	- interpreter.l: print and read have been deleted because they are preinstalled in the table of symbols
+
+	- init.hpp
+	- init.cpp
+
+	- makefile
+
+************************************************************************************
+ Ejemplo 13. Funciones matemáticas pre-definidas con un argumento
+		  	sin, cos, atan, log, log10,  exp, sqrt, int, abs
+
++ FICHEROS NUEVOS
+
+	- mathFunction.hpp: funciones matemáticas predefinidas
+	- mathFunction.cpp:
+
+	- builtin.hpp: 
+	- builtin.cpp: clase de funciones
+
+	- builtinParameter1.hpp: clase de funciones con 1 parámetro 
+ 	- builtinParameter1.cpp  
+
++ FICHEROS MODIFICADOS
+
+	- interpreter.y
+
+	- error.hpp: nueva función errcheck
+  	- error.cpp: nueva función errcheck
+
+
+	- init.hpp
+	- init.cpp
+
+
+	- makefile
+
+	- test.txt
+	- test-error.txt
+
+
++ EJERCICIO
+  + Poner la funciones predefinidas en castellano:
+ 	 seno, coseno, atan, log, log10, exp, raiz, entero, abs
+
+
+
+
+************************************************************************************
+Ejemplo 14: FUNCIONES PREDEFINIDAS CON CERO, UNO O DOS ARGUMENTOS
+ 
+ + permite una función predefinida con dos argumentos:
+   atan2(x,y)
+ 
+ + y con cero argumentos
+     random()
+
++ FICHEROS NUEVOS
+
+	- builtinParameter0.hpp: clase de funciones con 0 parámetros 
+ 	- builtinParameter0.cpp  
+
+
+	- builtinParameter2.hpp: clase de funciones con 2 parámetros 
+ 	- builtinParameter2.cpp  
+
++ FICHEROS MODIFICADOS
+
+	- mathFunction.hpp: funciones matemáticas predefinidas
+	- mathFunction.cpp:
+
+	- interpreter.y
+
+	- init.hpp
+	- init.cpp
+
+	- makefile
+
+	- test.txt
+	- test-error.txt
+
+
+************************************************************************************
+Ejemplo 15.- Operadores relacionales y lógicos
+
++ FICHEROS MODIFICADOS
+
+	- interpreter.y
+	- interpreter.l
+
+	- test.txt
+	- test-error.txt
+
+
+ + EJERCICIO
+	Comprobar el comportamiento de los operadores relacionales si %nonassoc se cambia por %left
+
+
+
+************************************************************************************
+ Ejemplo 16: GENERACIÓN DE CÓDIGO INTERMEDIO CON AST (C++)
+ 
+ + Se utiliza el AST para genera código intermedio que es posteriormente evaluado.
+
++ FICHEROS MODIFICADOS
+	- interpreter.y
+	- interpreter.l
+
+	- init.cpp
+	- init.hpp
+
+	- makefile
+
+	- Doxyfile
+
++ FICHEROS NUEVOS
+	-ast.cpp
+	-ast.hpp
+
+*************************************************************************************
+PENDIENTE DE ACTUALIZAR
+
+
+************************************************************************************
+ Ejemplo 17: SENTENCIAS DE CONTROL DE FLUJO
+ 
+  + Permite sentencia condicional: if
+  + Permite sentencia iterativa: while
+
+  + Conflicto del else
+
++ FICHEROS MODIFICADOS
+	- interpreter.y
+	- interpreter.l
+
+	- init.cpp
+	- init.hpp
+
+	-ast.cpp
+	-ast.hpp
+
+

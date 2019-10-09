@@ -1,0 +1,9 @@
+d= id * (n +id)
+S   => id=E
+
+(1) -> id= E*E 
+(2) -> id= E*(E)
+(3) -> id= E*(E+E)
+(4) -> id= id*(E+E)
+(5) -> id= id*(E+id)
+(6) -> id= id*(n+id) 

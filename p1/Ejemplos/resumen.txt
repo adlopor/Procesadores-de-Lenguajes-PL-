@@ -1,0 +1,76 @@
+Descripción de los ejemplos
+
++ minimo.l
+   - Ejemplo mínimo de flex
+   - El analizador lexico reproduce literalmente todo lo que se teclea
+
+
++ ejemplo0.l
+   - Ejemplo mínimo de flex pero con comentarios
+   - El analizador lexico reproduce literalmente todo lo que se teclea
+
++ ejemplo1.l
+
+    El analizador léxico convierte la letras mayúsculas en minúsculas,
+    elimina blancos al final de la línea y sustituye una serie de blancos
+    por uno solo.
+
++ ejemplo2.l
+
+   El analizador léxico distingue entre verbos y no verbos
+
++ ejemplo3.l
+
+   El analizador léxico distingue entre verbos, adjetivos, 
+   adverbios, artículos,... 
+
++ ejemplo4.l
+
+       El analizador lexico reconoce las palabras y las almacena en una tabla.
+       
+	Permite definir el tipo de cada palabra. 
+
+        Por ejemplo, si se teclea al principio de la línea
+
+            verbo amar luchar
+
+        define las palabras "amar" y "luchar" como verbos
+
++ ejemplo44.l
+
+      Versión del ejemplo 4
+
+       Se utiliza un fichero auxiliar "p44.c" para codificar las funciones de la tabla
+
++ ejemplo5.l
+   El analizador lexico reconoce algunos componentes léxicos de un lenguaje de programacion
+
+
++ ejemplo55.l
+
+   Versión del ejemplo 5
+   Se permite el uso de argumentos desde la línea de comandos
+
++ pink.l
+	Muestra el uso de REJECT
+
++ hiper
+	Muestra el uso de yymore()
+
++ comentario.l
+	El analizador léxico reconoce y cuenta los comentarios del lenguaje C
+        Se muestra el uso de 
+		BEGIN 
+		reglas condicionales controladas por un estado de flex definido por el programador
+
+
++ cadena_1.l
+	Reconoce y cuenta cadenas delimitadas por comillas simples
+
++ cadena_2.l
+	Reconoce y cuenta cadenas delimitadas por comillas simples
+        Se muestra el uso de 
+		BEGIN 
+		reglas condicionales controladas por un estado de flex definido por el programador
+		yymore()
+
